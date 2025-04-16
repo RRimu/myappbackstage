@@ -1,0 +1,93 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: java-app-template
+  title: Java App Template
+  description: A template for a Java app with Docker and Kubernetes.
+spec:
+  owner: user:guest
+  type: service
+
+  parameters:
+    - title: Fill in some fields
+      # properties:
+      #   # component_id:
+      #   #   title: Component ID
+      #   #   type: string
+      #   #   description: Unique ID for the component.
+      #   github_repo:
+      #     title: GitHub Repository
+      #     type: string
+      #     description: GitHub repository URL (e.g., https://github.com/your-org/your-repo).
+    - title: Fill in some steps
+      required:
+        - name
+      properties:
+        name:
+          title: Name
+          type: string
+          description: Unique name of the component
+          ui:autofocus: true
+          ui:options:
+            rows: 5
+    - title: Choose a location
+      required:
+        - repoUrl
+      properties:
+        repoUrl:
+          title: Repository Location
+          type: string
+          ui:field: RepoUrlPicker
+          ui:options:
+            allowedHosts:
+              - github.com
+        dockerhub_username:
+          title: Docker Hub Username
+          type: string
+          description: Your Docker Hub username.
+        image_name:
+          title: Docker Image Name
+          type: string
+          description: Name of the Docker image (e.g., my-app).
+          default: my-app
+        image_tag:
+          title: Docker Image Tag
+          type: string
+          description: Tag for the Docker image (e.g., latest, v1.0.0).
+          default: latest
+  steps:
+    - id: fetch-base
+      name: Fetch Base
+      action: fetch:template
+      input:
+        url: ./content
+        values:
+          component_id: ${{ parameters.component_id }}
+          github_repo: ${{ parameters.github_repo }}
+          dockerhub_username: ${{ parameters.dockerhub_username }}
+          image_name: ${{ parameters.image_name }}
+          image_tag: ${{ parameters.image_tag }}
+
+    
+
+    # - id: publish-github
+    #   name: Publish to GitHub
+    #   action: publish:github
+    #   input:
+    #     repoUrl: ${{ parameters.github_repo }}
+    #     defaultBranch: main
+    - id: publish
+      name: Publish
+      action: publish:github
+      input:
+        allowedHosts: ['github.com']
+        description: This is ${{ parameters.name }}
+        repoUrl: ${{ parameters.repoUrl }}
+  output:
+    links:
+      - title: Repository
+        url: ${{ steps['publish'].output.remoteUrl }}
+      - title: Open in catalog
+        icon: catalog
+        entityRef: ${{ steps['register'].output.entityRef }}
+ 
